@@ -1,0 +1,7 @@
+lftp http://build.talend.com/builds/ -u build-admin,remy_build
+
+lcd /var/samba/nightly/in_download/
+
+pget -c -n 5 V5.2.0NB_r91900/all/V5.2.0NB/all_520/Talend-Studio-r91900-V5.2.0NB.zip
+
+#mirror --parallel=5 V5.0.3_r86507/ /var/samba/nightly/5.0.3/

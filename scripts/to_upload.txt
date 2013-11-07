@@ -1,0 +1,2 @@
+lftp http://build.talend.com/builds/ -u build-admin,remy_build
+pget -O /var/samba/nightly/in_download V5.0.0NB_r71054/jetl/V5.0.0NB/jetl_500/JETL-All-r71054-V5.0.0NB.zip

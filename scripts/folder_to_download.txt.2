@@ -1,0 +1,6 @@
+set cmd:fail-exit true
+lftp http://newbuild.talend.com/builds/ -u build-admin,remy_build
+
+lcd /var/samba/nightly/
+
+mirror -v --only-missing --only-newer --exclude Documentation_branches/ --exclude Documentation_v5.2_rev8927/ --exclude releases/ --exclude Documentation_v5.2_rev8927/ --exclude Documentation_v5.2_rev8938/ --exclude Documentation_trunk_rev12410/ --exclude Documentation_trunk_rev12474/ --exclude Documentation_trunk_rev12527/ --exclude Documentation_trunk_rev12555/ --exclude Documentation_trunk_rev12621/ --exclude Documentation_trunk_rev12687/ --use-pget-n=5 Documentation/

@@ -1,0 +1,6 @@
+lftp http://ftp.sopera.com/builds/
+
+lcd /var/samba/nightly
+
+
+mirror --only-missing --only-newer V5.2.3NB_r105025/ /var/samba/nightly/ -v --use-pget-n=5

@@ -1,0 +1,6 @@
+lftp http://newbuild.talend.com/builds/ -u build-admin,remy_build
+
+lcd /var/samba/nightly
+
+
+mirror --only-missing --only-newer JaspersoftInstaller/V5.3.1_r104014/ /var/samba/nightly/ -v --use-pget-n=5
