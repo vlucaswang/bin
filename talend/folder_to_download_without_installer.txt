@@ -1,6 +1,0 @@
-lftp http://newbuild.talend.com/builds/ -u build-admin,remy_build
-
-lcd /var/samba/nightly
-
-
-mirror --only-missing --only-newer V5.3.0_r101629 /var/samba/nightly/ -v --use-pget-n=5 --exclude all/BPM-r101629-V5.3.0.zip --exclude all/V5.3.0/all_530/Talend-Installer-r101629-V5.3.0-installer/ --exclude jetl
