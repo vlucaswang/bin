@@ -9,8 +9,8 @@ REALIP2=$(grep IPADDR2 $NETPATH/ifcfg-eth4 | awk -F = '{print $2}')
 service NetworkManager stop
 chkconfig NetworkManager off
 
-mv $NETPATH/ifcfg-eth0 $NETPATH/ifcfg-eth0.$(date +%Y%m%d).bak
-mv $NETPATH/ifcfg-eth4 $NETPATH/ifcfg-eth4.$(date +%Y%m%d).bak
+testf -f ifcfg-eth0.$(date +%Y%m%d).bak || mv $NETPATH/ifcfg-eth0 $NETPATH/ifcfg-eth0.$(date +%Y%m%d).bak
+testf -f ifcfg-eth4.$(date +%Y%m%d).bak || mv $NETPATH/ifcfg-eth4 $NETPATH/ifcfg-eth4.$(date +%Y%m%d).bak
 
 cat > $NETPATH/ifcfg-eth0 <<EOF
 DEVICE=eth0
@@ -23,7 +23,7 @@ NM_CONTROLLED=no
 EOF
 
 cat > $NETPATH/ifcfg-eth4 <<EOF
-DEVICE=eth5
+DEVICE=eth4
 ONBOOT=yes
 BOOTPROTO=none
 MASTER=bond0
@@ -47,7 +47,7 @@ GATEWAY2=192.168.6.1
 BONDING_OPTS="mode=4 miimon=100"
 EOF
 
-cat > /etc/modprobe.d/bonding.conf <<EOF
+cat >> /etc/modprobe.d/bonding.conf <<EOF
 alias bond0 bonding
 #options bonding mode=4 miimon=100 
 EOF
@@ -56,6 +56,11 @@ modprobe bonding
 
 sleep 2
 /etc/init.d/network restart
+chkconfig network on
+
+ifup eth0
+ifup eth4
+ifup bond0
 
 cat /proc/net/bonding/bond0
 

@@ -4,9 +4,9 @@
 #job="0 6 * * * $command"
 #file="/root/ansible/tmphost3"
 ROOT_UID=0
-DEFAULT_IP_LIST="/root/ansible/hosts_20150114"
+DEFAULT_IP_LIST='/root/ansible/hosts_20150114'
 INPUT_IP_LIST=$2
-IP_LIST=${INPUT_IP_LIST:-DEFAULT_IP_LIST}
+IP_LIST=${INPUT_IP_LIST:-$DEFAULT_IP_LIST}
 
 if [ "$EUID" -ne "$ROOT_UID" ];then
   echo "Must be root to run this script."
@@ -24,7 +24,7 @@ function copy_script() {
 }
 
 run_script() {
-  ssh root@$line 'LANG=C bash /root/ntpcheck.sh;LANG=C bash /root/ansible/autocheck.sh'
+  ssh root@$line 'LANG=C bash /root/ntpcheck.sh;LANG=C bash /root/autocheck.sh'
 }
 
 add_crontab() {

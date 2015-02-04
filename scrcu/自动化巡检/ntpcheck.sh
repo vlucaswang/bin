@@ -37,9 +37,11 @@ echo -n $(/sbin/ifconfig | awk '/inet addr/{print substr($2,6)}' | grep -Ev "127
 if [ -f $COMMENT_FILE ]; then
 EXTRAVALUE1="`awk -F '=' 'NR==6 {print $2}' $COMMENT_FILE`(`awk -F '=' 'NR==7 {print $2}' $COMMENT_FILE`)"
 #EXTRAVALUE2="`awk -F '=' 'NR==8 {print $2}' $COMMENT_FILE`"
-fi
 echo -n ",$EXTRAVALUE1" >> $LOGFILE
 #echo -n ",$EXTRAVALUE2" >> $LOGFILE
+else
+echo -n "," >> $LOGFILE
+fi
 
 #current ntp upstream server
 echo -n ",$(ntpq -p | awk '/[0-9]/{print $1}' | tr '\n' ' ' | sed 's/ $//')" >> $LOGFILE
