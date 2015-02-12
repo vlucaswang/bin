@@ -150,10 +150,6 @@ install_db2_dependency()
      modify_rhel6_yum
      yum install -y net-snmp lrzsz OpenIPMI pam pam.i686 libstdc++ libstdc++.i686 compat-libstdc++-33 compat-libstdc++-33.i686 libaio libaio.i686 rdma ksh binutils unixODBC unixODBC-devel compat-libcap1 glibc-devel glibc-devel.i686 libgcc libgcc.i686 libstdc++-devel libstdc++-devel.i686 libaio-devel libaio-devel.i686 make >/dev/null 2>&1
   fi
-}
-
-install_vsftpd()
-{
   if [ "$os_type" == "redhat" ]
   then
      yum install ftp lftp vsftpd -y >/dev/null 2>&1
@@ -287,6 +283,20 @@ config_vim()
 EOF
 }
 
+config_safey()
+{
+  sed -i 's/^PASS_MIN_LEN.*5$/PASS_MIN_LEN 8/g' /etc/login.defs
+  sed -i 'N;/^#%PAM-1.0$/a\auth       required     pam_tally2.so onerr=fail deny=3 even_deny_root unlock_time=1200 root_unlock_time=60' /etc/pam.d/sshd
+  sed -i 'N;/^account/a\account    required     pam_tally2.so' /etc/pam.d/sshd
+  sed -i 's/^#PermitEmptyPasswords.*no$/PermitEmptyPasswords no/' /etc/ssh/sshd_config
+  sed -i 's/^PasswordAuthentication.*yes$/PasswordAuthentication no/' /etc/ssh/sshd_config
+  sed -i 's/^ChallengeResponseAuthentication.*no$/ChallengeResponseAuthentication yes/' /etc/ssh/sshd_config
+  service sshd reload
+  chmod 600 /etc/xinetd.d/
+  chmod 400 /var/log/messages
+  echo 'TMOUT=300' >> /etc/profile
+}
+
 restart_ntp()
 {
   if [ "$os_type" == "redhat" ]
@@ -309,8 +319,8 @@ AStr="生成ssh信任,设置ulimit,history时间戳,配置文件保护"
 BStr="关闭防火墙,selinux,优化启动服务"
 CStr="调整并同步NTP"
 DStr="调整vim,sshd"
-EStr="安装数据库系统依赖包"
-FStr="安装配置vsftpd"
+EStr="安全配置"
+FStr="安装数据库系统依赖包"
 GStr="安装配置vnc服务器"
 HStr="一键初始化"
 echo "+--------------------------------------------------------------+"
@@ -368,10 +378,10 @@ install_option()
     config_sshd
        ;;
     E|e)
-    install_db2_dependency
+    config_safey
        ;;
     F|f)
-    install_vsftpd
+    install_db2_dependency
        ;;
     G|g)
     install_vncserver
@@ -394,8 +404,8 @@ install_option()
     restart_ntp
     config_vim
     config_sshd
+    config_safey
     install_db2_dependency
-    install_vsftpd
     install_vncserver
     config_vncserver
        ;;
