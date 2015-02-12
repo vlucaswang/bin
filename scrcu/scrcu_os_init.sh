@@ -283,7 +283,7 @@ config_vim()
 EOF
 }
 
-config_safey()
+config_safety()
 {
   sed -i 's/^PASS_MIN_LEN.*5$/PASS_MIN_LEN 8/g' /etc/login.defs
   sed -i 'N;/^#%PAM-1.0$/a\auth       required     pam_tally2.so onerr=fail deny=3 even_deny_root unlock_time=1200 root_unlock_time=60' /etc/pam.d/sshd
@@ -378,7 +378,7 @@ install_option()
     config_sshd
        ;;
     E|e)
-    config_safey
+    config_safety
        ;;
     F|f)
     install_db2_dependency
@@ -404,7 +404,7 @@ install_option()
     restart_ntp
     config_vim
     config_sshd
-    config_safey
+    config_safety
     install_db2_dependency
     install_vncserver
     config_vncserver
