@@ -2,7 +2,7 @@
 
 #########################################
 #Function:    setup scrcu rhel kdump function
-#Usage:       bash kdumpconfig_el6.sh
+#Usage:       bash kdumpconfig_el5.sh
 #Author:      Xiaochuan Wang
 #Company:     SYSSSC
 #Version:     1.0
@@ -24,53 +24,43 @@ grub_conf=/boot/grub/grub.conf
 grub_conf_kdumphelper=/boot/grub/grub.conf.kdumphelper.$(date +%y-%m-%d-%H:%M:%S)
 echo backup $grub_conf to $grub_conf_kdumphelper
 cp $grub_conf $grub_conf_kdumphelper
-#     RHEL6 crashkernel compute
-#     /*
-#       https://access.redhat.com/site/solutions/59432
+#      RHEL5 crashkernel compute
+#       crashkernel=memory@offset
 #
-compute_rhel6_crash_kernel ()
+#        +---------------------------------------+
+#        | RAM       | crashkernel | crashkernel |
+#        | size      | memory      | offset      |
+#        |-----------+-------------+-------------|
+#        |  0 - 2G   | 128M        | 16          |
+#        | 2G - 6G   | 256M        | 24          |
+#        | 6G - 8G   | 512M        | 16          |
+#        | 8G - 24G  | 768M        | 32          |
+#        +---------------------------------------+
+#       */    
+compute_rhel5_crash_kernel ()
 {
     reserved_memory=128
+    offset=16
     mem_size=$1
-    kernel_subversion=`uname -r|awk -F"." '{print $3}'|awk -F"-" '{print $2}'`
-    if [ $kernel_subversion -lt 220 ] ; then
-        if [ $mem_size -le 2 ]
-        then
-            reserved_memory=128
-        elif [ $mem_size -le 6 ]
-        then
-            reserved_memory=256
-        elif [ $mem_size -le 8 ]
-        then
-            reserved_memory=512
-        else
-            reserved_memory=768
-        fi
-        echo "$reserved_memory"M
-    fi
-
-    if [ $kernel_subversion -ge 220 ] && [ $kernel_subversion -lt 279 ]; then # Check for kernel version > = 220 and RAM > = 4 GiB
-    if [ $mem_size -ge 4 ];then
-        reserved_memory="auto"
-        echo "$reserved_memory"
-    else # Check for kernel version > = 220 and RAM < 4 GiB
-        reserved_memory=128
-        echo "$reserved_memory"M
-    fi
-    fi
-
-    if [ $kernel_subversion -ge 279 ] ; then   # Check for kernel version > = 279 and RAM > = 2 GiB
-    if [ $mem_size -ge 2 ]
+    if [ $mem_size -le 2 ] 
     then
-        reserved_memory="auto"
-        echo "$reserved_memory"
-    else # Check for kernel version > = 279 and RAM < 2 GiB
-    reserved_memory=128
-    echo "$reserved_memory"M
+        reserved_memory=128
+        offset=16
+    elif [ $mem_size -le 6 ]
+    then 
+        reserved_memory=256
+        offset=24
+    elif [ $mem_size -le 8 ]
+    then
+        reserved_memory=512
+        offset=16
+    else
+        reserved_memory=768
+        offset=32
     fi
-    fi
+    echo "$reserved_memory"M@"$offset"M
 }
-crashkernel_para=`compute_rhel6_crash_kernel $mem_total `
+    crashkernel_para=`compute_rhel5_crash_kernel $mem_total `
 echo crashkernel=$crashkernel_para is set in $grub_conf
 grubby --update-kernel=DEFAULT --args=crashkernel=$crashkernel_para
 
@@ -108,15 +98,6 @@ echo 'kernel.sysrq=1 set in /etc/sysctl.conf'
 echo '#https://access.redhat.com/site/solutions/125103' >> $sysctl_conf
 echo 'kernel.unknown_nmi_panic=1' >> $sysctl_conf
 echo 'kernel.unknown_nmi_panic=1  set in /etc/sysctl.conf'
-
-#softlockup
-sed -i '/^kernel.softlockup_panic/ s/kernel/#kernel/g ' $sysctl_conf 
-echo >> $sysctl_conf
-echo '#Panic on soft lockups.' >> $sysctl_conf
-echo '#Added by kdumphelper, more information about it can be found in solution below' >> $sysctl_conf
-echo '#https://access.redhat.com/site/solutions/19541' >> $sysctl_conf
-echo 'kernel.softlockup_panic=1' >> $sysctl_conf
-echo 'kernel.softlockup_panic=1 set in /etc/sysctl.conf'
 
 #oom
 sed -i '/^kernel.panic_on_oom/ s/kernel/#kernel/g ' $sysctl_conf 
