@@ -10,9 +10,15 @@
 
 ####################Start###################
 # check lock file ,one time only let the script run one time
-LOCKfile=/tmp/.$(basename $0)
+LOG_PATH=/tmp/sysssc
+LOG_FILE=$(date)
+LOCKfile=$LOG_PATH/.$(basename $0).lock
 OPENSSLDIR=/usr/local/openssl-1.0.2a
 OPENSSHDIR=/opt/ssh
+
+export LANG=en_US
+export LC_CTYPE=en_US
+export PATH=/usr/bin:$PATH
 
 if [ -f "$LOCKfile" ]
 then
@@ -28,20 +34,28 @@ if [ $(id -u) != "0" ]
 then
   echo -e "\033[1;40;31mError: You must be root to run this script, please use root to install this script.\n\033[0m"
   rm -rf $LOCKfile
-  exit 1
+  exit 3
+fi
+
+rm -rf ${LOG_PATH}
+
+# Create directory for outputs.
+if [ ! -d ${LOG_PATH} ]
+then
+	mkdir -p ${LOG_PATH}
 fi
 
 #yum install gcc make pam-devel -y
-rpm -qa | grep gcc && rpm -qa | grep make && rpm -qa | grep pam-devel
+rpm -qa | grep gcc && rpm -qa | grep make && rpm -qa | grep pam-devel && rpm -qa | grep zlib-devel
 if [ $? -eq 1 ]
 then
-	echo 'Package gcc or make or pam-devel is not installed.'
-	exit 2
+	echo 'Package gcc or make or pam-devel or zlib-devel is not installed.'
+	rm -rf $LOCKfile
+	exit 4
 fi
 
-export LANG=en_US
-export LC_CTYPE=en_US
-export PATH=/usr/bin:$PATH
+exec 2>>"${LOG_PATH}/${LOG_FILE}_err"
+#exec >>"${LOG_PATH}/${LOG_FILE}_log"
 
 cd `dirname $0`
 echo `pwd`
@@ -58,7 +72,7 @@ rm -rf $OPENSSLDIR && rm -f /usr/local/openssl && rm -rf $OPENSSHDIR
 # compiling openssl
 tar zxvf openssl-1.0.2a.tar.gz
 cd openssl-1.0.2a
-./config shared --prefix=/usr/local --openssldir=$OPENSSLDIR
+./config --shared --prefix=$OPENSSLDIR
 make && make test && make install
 grep $OPENSSLDIR/lib /etc/ld.so.conf.d/openssl.conf >/dev/null 2>&1
 if [ $? -ne 0 ]
