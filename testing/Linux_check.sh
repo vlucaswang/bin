@@ -318,18 +318,19 @@ check_os() {
 }
 
 cat /etc/fstab >> $LOG_PATH/$LOG_FILE.log
-df -hP >> $LOG_PATH/$LOG_FILE.log
-fdisk -l >> $LOG_PATH/$LOG_FILE.log
-pvs >> $LOG_PATH/$LOG_FILE.log
-vgs >> $LOG_PATH/$LOG_FILE.log
-lvs >> $LOG_PATH/$LOG_FILE.log
+df -hP >> $LOG_PATH/$LOG_FILE.log >/dev/null 2>&1
+fdisk -l >> $LOG_PATH/$LOG_FILE.log >/dev/null 2>&1
+pvs >> $LOG_PATH/$LOG_FILE.log >/dev/null 2>&1
+vgs >> $LOG_PATH/$LOG_FILE.log >/dev/null 2>&1
+lvs >> $LOG_PATH/$LOG_FILE.log >/dev/null 2>&1
 top_log=${LOG_PATH}/${LOG_FILE}_top.log
 top -bn $DATA_TIME > $top_log
 vmstat_log=${LOG_PATH}/${LOG_FILE}_vmstat.log
 vmstat 1 $DATA_TIME > $vmstat_log
 iostat_log=${LOG_PATH}/${LOG_FILE}_iostat.log
 iostat -kx 1 $DATA_TIME > $iostat_log
-cat /var/log/messages* > messages
+messages_log=${LOG_PATH}/${LOG_FILE}_messages.log
+cat /var/log/messages* > $messages_log
 
 check_load_perf() {
 	nr_thread=`grep -c 'model name' /proc/cpuinfo`
