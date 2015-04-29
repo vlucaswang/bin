@@ -6,7 +6,7 @@
 
 STARTTIME=$(date +%s)
 ROOT_UID=0
-FTPBASE=/data/rpt/数据清理/20140910第二批下发数据
+FTPBASE=
 
 #Run as root.
 if  [ "$EUID" -ne "$ROOT_UID" ];then
@@ -28,7 +28,7 @@ while read line; do
 if ping -c 1 $IP &>/dev/null
 then
 	ssh -n $IP "mkdir -p $FTPBASE"
-	rsync -az $FTPBASE/$CC.rar $FTPBASE/附件：网点清理手册第二批次20140910.doc $IP:$FTPBASE/ > /dev/null 2>&1
+	rsync -az $FTPBASE/$CC.rar $IP:$FTPBASE/ > /dev/null 2>&1
 #	tar -C $FTPBASE/LS/$CC -jcf - ./ | ssh $IP 'tar -C $FTPBASE/LS/$CC -jxf -'
 #	tar -C $FTPBASE/WD/$CC -jcf - ./ | ssh $IP 'tar -C $FTPBASE/WD/$CC -jxf -'
 	ssh -n $IP "chown ftphost.ftphost -R $FTPBASE"

@@ -8,8 +8,8 @@
 export LANG=zh_CN.UTF-8
 export PATH=/usr/bin:$PATH
 
-CUSTOMER_NAME="重庆三峡银行"
-CHECK_DATE="2015年4月29日"
+CUSTOMER_NAME=""
+CHECK_DATE=""
 LOG_PATH=/tmp/sysssc
 LOG_FILE=`hostname`_`echo $(/sbin/ifconfig | awk '/inet addr/{print substr($2,6)}' | grep -v 127.0) | sed "s/ /_/g"`
 LOCKfile=.$(basename $0).lock
