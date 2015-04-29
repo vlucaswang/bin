@@ -28,7 +28,13 @@ function checkstatus1() {
   fi
 }
 
-mkdir -p $LOGPATH || ( rm -rf $LOGPATH && mkdir -p $LOGPATH )
+rm -rf ${LOG_PATH}
+
+# Create directory for outputs.
+if [ ! -d ${LOG_PATH} ]
+then
+  mkdir -p ${LOG_PATH}
+fi
 
 #IP address
 echo -n $(/sbin/ifconfig | awk '/inet addr/{print substr($2,6)}' | grep -Ev "127.0|192.168") > $LOGFILE
