@@ -318,11 +318,11 @@ check_os() {
 }
 
 cat /etc/fstab >> $LOG_PATH/$LOG_FILE.log
-df -hP >> $LOG_PATH/$LOG_FILE.log >/dev/null 2>&1
-fdisk -l >> $LOG_PATH/$LOG_FILE.log >/dev/null 2>&1
-pvs >> $LOG_PATH/$LOG_FILE.log >/dev/null 2>&1
-vgs >> $LOG_PATH/$LOG_FILE.log >/dev/null 2>&1
-lvs >> $LOG_PATH/$LOG_FILE.log >/dev/null 2>&1
+df -hP >> $LOG_PATH/$LOG_FILE.log 2>&1
+fdisk -l >> $LOG_PATH/$LOG_FILE.log 2>&1
+pvs >> $LOG_PATH/$LOG_FILE.log 2>&1
+vgs >> $LOG_PATH/$LOG_FILE.log 2>&1
+lvs >> $LOG_PATH/$LOG_FILE.log 2>&1
 top_log=${LOG_PATH}/${LOG_FILE}_top.log
 top -bn $DATA_TIME > $top_log
 vmstat_log=${LOG_PATH}/${LOG_FILE}_vmstat.log
