@@ -1,6 +1,8 @@
 #!/bin/bash
 
-ssh-keygen -q -t rsa -f ~/.ssh/id_rsa -N ""
+if [ ! -f /root/.ssh/id_rsa ]; then
+	ssh-keygen -q -t rsa -f /root/.ssh/id_rsa -N ""
+fi
 ssh-copy-id root@$1
 scp Linux_check.sh root@$1:/tmp/
 ssh root@$1 'chmod +x /tmp/Linux_check.sh;bash /tmp/Linux_check.sh'
