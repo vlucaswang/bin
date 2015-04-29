@@ -529,7 +529,7 @@ check_security() {
 	echo "五、系统安全检查："
 	echo ""
 	echo "1.登录检查："
-	last -i|grep pts|awk '{print $1,$3}'|sort|uniq -c|sort -r|head -3|check_login
+	last -100 -i|grep pts|awk '{print $1,$3}'|sort|uniq -c|sort -r|head -3|check_login
 	echo "2.登录失败检查："
 	lastb -i|awk 'NF==10 {print $1,$3}'|sort|uniq -c|sort -r|check_login
 	echo "3.安全日志检查："
