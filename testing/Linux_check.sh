@@ -8,8 +8,8 @@
 export LANG=zh_CN.UTF-8
 export PATH=/usr/bin:$PATH
 
-CUSTOMER_NAME=""
-CHECK_DATE=""
+CUSTOMER_NAME="重庆三峡银行"
+CHECK_DATE="2015年4月29日"
 LOG_PATH=/tmp/sysssc
 LOG_FILE=`hostname`_`echo $(/sbin/ifconfig | awk '/inet addr/{print substr($2,6)}' | grep -v 127.0) | sed "s/ /_/g"`
 LOCKfile=.$(basename $0).lock
@@ -191,7 +191,7 @@ check_ntp() {
 			err="1"
 		fi
 	done
-	ps -ef | grep -Ev "grep|check" | grep $service_name
+	ps -ef | grep -Ev "grep|check" | grep $service_name >/dev/null 2>&1
 	if [ "$?" -gt "0" ]; then
 		err="1"
 		echo "NTP未运行或无法ping通ntp服务器，请检查。"
