@@ -68,7 +68,7 @@ get_nr_cores_of_socket() {
 }
 
 get_nr_model() {
-	awk -F: '/model name/{print $2}' /proc/cpuinfo
+	awk -F: '/model name/{print $2}' /proc/cpuinfo | sort | uniq
 }
 
 check_cpu() {
@@ -324,13 +324,13 @@ pvs >> $LOG_PATH/$LOG_FILE.log 2>&1
 vgs >> $LOG_PATH/$LOG_FILE.log 2>&1
 lvs >> $LOG_PATH/$LOG_FILE.log 2>&1
 top_log=${LOG_PATH}/${LOG_FILE}_top.log
-top -bn $DATA_TIME > $top_log
+top -bn $DATA_TIME > $top_log 2>&1
 vmstat_log=${LOG_PATH}/${LOG_FILE}_vmstat.log
-vmstat 1 $DATA_TIME > $vmstat_log
+vmstat 1 $DATA_TIME > $vmstat_log 2>&1
 iostat_log=${LOG_PATH}/${LOG_FILE}_iostat.log
-iostat -kx 1 $DATA_TIME > $iostat_log
+iostat -kx 1 $DATA_TIME > $iostat_log 2>&1
 messages_log=${LOG_PATH}/${LOG_FILE}_messages.log
-cat /var/log/messages* > $messages_log
+cat /var/log/messages > $messages_log
 
 check_load_perf() {
 	nr_thread=`grep -c 'model name' /proc/cpuinfo`
@@ -529,9 +529,9 @@ check_security() {
 	echo "五、系统安全检查："
 	echo ""
 	echo "1.登录检查："
-	last -100 -i|grep pts|awk '{print $1,$3}'|sort|uniq -c|sort -r|head -3|check_login
+	last -50 -i|grep pts|awk '{print $1,$3}'|sort|uniq -c|sort -r|head -3|check_login
 	echo "2.登录失败检查："
-	lastb -i|awk 'NF==10 {print $1,$3}'|sort|uniq -c|sort -r|check_login
+	lastb -50 -i|awk 'NF==10 {print $1,$3}'|sort|uniq -c|sort -r|check_login
 	echo "3.安全日志检查："
 	check_secure_log
 	echo "4.启动日志检查："
