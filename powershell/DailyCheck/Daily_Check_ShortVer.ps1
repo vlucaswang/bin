@@ -87,7 +87,7 @@ $sc_job_state = Get-EventLog -Computername $env:computername -LogName "Applicati
 if ($sc_job_state -ne $null) {
     $sc_state = "Failed"
 }
-[System.IO.File]::AppendAllText("$logpath\$logfile", $sd_state, [System.Text.Encoding]::Unicode)
+[System.IO.File]::AppendAllText("$logpath\$logfile", $sc_state, [System.Text.Encoding]::Unicode)
 [System.IO.File]::AppendAllText("$logpath\$logfile", ',', [System.Text.Encoding]::Unicode)
 }
 
