@@ -17,8 +17,8 @@ foreach($disk in $disks)
         $disk_state = "Failed";
         }
     }
-[System.IO.File]::AppendAllText($logpath\$logfile, $disk_state, [System.Text.Encoding]::Unicode)
-[System.IO.File]::AppendAllText($logpath\$logfile, ',', [System.Text.Encoding]::Unicode)
+[System.IO.File]::AppendAllText("$logpath\$logfile", $disk_state, [System.Text.Encoding]::Unicode)
+[System.IO.File]::AppendAllText("$logpath\$logfile", ',', [System.Text.Encoding]::Unicode)
 }
 
 function CheckAutoServiceState {
@@ -27,18 +27,18 @@ $servicevalue = Get-WmiObject -Class win32_service -ComputerName $env:computerna
 if(@($servicevalue | measure).Count -gt 0) {
 	$service_state = "Failed"
 	}
-[System.IO.File]::AppendAllText($logpath\$logfile, $service_state, [System.Text.Encoding]::Unicode)
-[System.IO.File]::AppendAllText($logpath\$logfile, ',', [System.Text.Encoding]::Unicode)
+[System.IO.File]::AppendAllText("$logpath\$logfile", $service_state, [System.Text.Encoding]::Unicode)
+[System.IO.File]::AppendAllText("$logpath\$logfile", ',', [System.Text.Encoding]::Unicode)
 }
 
 function CheckSmartArray {
 $array_state = "OK"
-$drive_state = C:\Windows\System32\cmd.exe /c "C:\Program Files (x86)\Compaq\Hpacucli\Bin\hpacucli.exe" controller slot=0 physicaldrive all show | select-string -pattern "Failed"
+$drive_state = "C:\Windows\System32\cmd.exe /c 'C:\Program Files (x86)\Compaq\Hpacucli\Bin\hpacucli.exe' controller slot=0 physicaldrive all show | select-string -pattern 'Failed'"
 if ($drive_state -ne $null) {
     $array_state = "Failed"
 }
-[System.IO.File]::AppendAllText($logpath\$logfile, $array_state, [System.Text.Encoding]::Unicode)
-[System.IO.File]::AppendAllText($logpath\$logfile, ',', [System.Text.Encoding]::Unicode)
+[System.IO.File]::AppendAllText("$logpath\$logfile", $array_state, [System.Text.Encoding]::Unicode)
+[System.IO.File]::AppendAllText("$logpath\$logfile", ',', [System.Text.Encoding]::Unicode)
 }
 
 function CheckShadowCopy {
@@ -77,8 +77,8 @@ If($Volumes)
         If($VolumeShadowStorage -Or $ShowAllVolumes){$Output += $Object}
     }
 }
-[System.IO.File]::AppendAllText($logpath\$logfile, $vss_state, [System.Text.Encoding]::Unicode)
-[System.IO.File]::AppendAllText($logpath\$logfile, ',', [System.Text.Encoding]::Unicode)
+[System.IO.File]::AppendAllText("$logpath\$logfile", $vss_state, [System.Text.Encoding]::Unicode)
+[System.IO.File]::AppendAllText("$logpath\$logfile", ',', [System.Text.Encoding]::Unicode)
 }
 
 function CheckShadowProtect {
@@ -87,8 +87,8 @@ $sc_job_state = Get-EventLog -Computername $env:computername -LogName "Applicati
 if ($sc_job_state -ne $null) {
     $sc_state = "Failed"
 }
-[System.IO.File]::AppendAllText($logpath\$logfile, $sd_state, [System.Text.Encoding]::Unicode)
-[System.IO.File]::AppendAllText($logpath\$logfile, ',', [System.Text.Encoding]::Unicode)
+[System.IO.File]::AppendAllText("$logpath\$logfile", $sd_state, [System.Text.Encoding]::Unicode)
+[System.IO.File]::AppendAllText("$logpath\$logfile", ',', [System.Text.Encoding]::Unicode)
 }
 
 function CheckLanSafe {
@@ -97,7 +97,18 @@ $ls_log_state = Get-EventLog -Computername $env:computername -LogName "Applicati
 if ($ls_log_state -ne $null) {
     $ls_state = "Failed"
 }
-[System.IO.File]::AppendAllText($logpath\$logfile, $ls_state, [System.Text.Encoding]::Unicode)
+[System.IO.File]::AppendAllText("$logpath\$logfile", $ls_state, [System.Text.Encoding]::Unicode)
+}
+
+function UploadToFTP {
+$ftpurl = "ftp://52.62.250.69:19897/dir/"
+$ftpuser = "user"
+$ftppass = "pass"
+
+$webclient = New-Object System.Net.webclient
+$webclient.Credentials = New-Object System.Net.NetworkCredentials($ftpuser,$ftppass)
+$uri = New-Object System.Uri($ftpurl+$logfile)
+$weblclient.UploadFile($uri, "$logpath\$logfile")
 }
 
 
@@ -107,14 +118,4 @@ CheckSmartArray
 CheckShadowCopy
 CheckShadowProtect
 CheckLanSafe
-
-
-#$servicevalue
-#$servicevalue | ConvertTo-Csv -NoTypeInformation | select -Skip 1 | Add-Content C:\Temp\"$env:computername"_DetailedReport.csv
-
-
-#$from = "MailID"
-#$to = "MailID"
-#$smtp = "SMTP NAME"
-#$subject = "Disk Space Report"
-#Send-MailMessage -From $from -To $to -SmtpServer $smtp -Subject $subject -Body "Disk Space Report" -Attachments C:\Temp\DiskReport.csv
+#UploadToFTP
