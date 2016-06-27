@@ -82,12 +82,12 @@ If($Volumes)
 }
 
 function CheckShadowProtect {
-$sc_state = "OK"
-$sc_job_state = Get-EventLog -Computername $env:computername -LogName "Application" -After (get-date).AddDays(-1) | Where-Object {$_.EventID -eq 1120 -or $_.EventID -eq 1121 -or $_.EventID -eq 1122 -and $_.Source -eq "ShadowProtectSvc" -and (Get-Date $_.TimeWritten) -gt ((Get-Date).AddHours(-12))} | select -first 1 | select-string -pattern "Failed"
-if ($sc_job_state -ne $null) {
-    $sc_state = "Failed"
+$sp_state = "OK"
+$sp_job_state = Get-EventLog -Computername $env:computername -LogName "Application" -After (get-date).AddDays(-1) | Where-Object {$_.EventID -eq 1120 -or $_.EventID -eq 1121 -or $_.EventID -eq 1122 -and $_.Source -eq "ShadowProtectSvc" -and (Get-Date $_.TimeWritten) -gt ((Get-Date).AddHours(-12))} | select -first 1 | select-string -pattern "Failed"
+if ($sp_job_state -ne $null) {
+    $sp_state = "Failed"
 }
-[System.IO.File]::AppendAllText("$logpath\$logfile", $sc_state, [System.Text.Encoding]::Unicode)
+[System.IO.File]::AppendAllText("$logpath\$logfile", $sp_state, [System.Text.Encoding]::Unicode)
 [System.IO.File]::AppendAllText("$logpath\$logfile", ',', [System.Text.Encoding]::Unicode)
 }
 
