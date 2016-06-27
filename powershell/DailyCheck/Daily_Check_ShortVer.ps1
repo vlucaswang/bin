@@ -22,20 +22,38 @@ foreach($disk in $disks)
 }
 
 function CheckAutoServiceState {
-$service_state = "OK"
 $servicevalue = Get-WmiObject -Class win32_service -ComputerName $env:computername -Filter "startmode = 'auto' AND state != 'running'" | Select Name, State, ExitCode
-if(@($servicevalue | measure).Count -gt 0) {
-	$service_state = "Failed"
-	}
-[System.IO.File]::AppendAllText("$logpath\$logfile", $service_state, [System.Text.Encoding]::Unicode)
+[System.IO.File]::AppendAllText("$logpath\$logfile", ($servicevalue | measure).Count, [System.Text.Encoding]::Unicode)
 [System.IO.File]::AppendAllText("$logpath\$logfile", ',', [System.Text.Encoding]::Unicode)
+}
+
+function GetHPcliPath () {
+$programPaths = (
+    'C:\Program Files\HP\Hpacucli\Bin\hpacucli.exe',
+    'C:\Program Files\Compaq\Hpacucli\Bin\hpacucli.exe',
+    'C:\Program Files (x86)\HP\Hpacucli\Bin\hpacucli.exe',
+    'C:\Program Files (x86)\Compaq\Hpacucli\Bin\hpacucli.exe',
+    'C:\Program Files\hp\hpssacli\bin\hpssacli.exe'
+);
+foreach ($path in $programPaths) {
+    if (Test-Path $path) {
+        return $path
+    }
+}
+return $false
 }
 
 function CheckSmartArray {
 $array_state = "OK"
-$drive_state = "C:\Windows\System32\cmd.exe /c 'C:\Program Files (x86)\Compaq\Hpacucli\Bin\hpacucli.exe' controller slot=0 physicaldrive all show | select-string -pattern 'Failed'"
-if ($drive_state -ne $null) {
-    $array_state = "Failed"
+$drive_state = GetHPcliPath
+if ($drive_state -eq $false) {
+    $array_state = "NONE"
+}
+else {
+    $drive_state_exec = & $drive_state 'ctrl all show config' | Where-Object { $_ } | select-string -pattern Failed,Recover,Failure,Rebuilding
+    if ($drive_state_exec -ne $null) {
+        $array_state = "Failed"
+    }
 }
 [System.IO.File]::AppendAllText("$logpath\$logfile", $array_state, [System.Text.Encoding]::Unicode)
 [System.IO.File]::AppendAllText("$logpath\$logfile", ',', [System.Text.Encoding]::Unicode)
@@ -46,24 +64,14 @@ $Output = @()
 $vss_state = "OK"
 $Volumes = gwmi Win32_Volume -Property SystemName,DriveLetter,DeviceID,Capacity,FreeSpace -Filter "DriveType=3" -ComputerName $env:computername |
                 Select SystemName,@{n="DriveLetter";e={$_.DriveLetter.ToUpper()}},DeviceID,@{n="CapacityGB";e={([math]::Round([int64]($_.Capacity)/1GB,2))}},@{n="FreeSpaceGB";e={([math]::Round([int64]($_.FreeSpace)/1GB,2))}} | Sort DriveLetter
-$ShadowStorage = gwmi Win32_ShadowStorage -Property AllocatedSpace,DiffVolume,MaxSpace,UsedSpace,Volume -ComputerName $env:computername |
-    Select @{n="Volume";e={$_.Volume.Replace("\\","\").Replace("Win32_Volume.DeviceID=","").Replace("`"","")}},
-    @{n="DiffVolume";e={$_.DiffVolume.Replace("\\","\").Replace("Win32_Volume.DeviceID=","").Replace("`"","")}},
-    @{n="AllocatedSpaceGB";e={([math]::Round([int64]($_.AllocatedSpace)/1GB,2))}},
-    @{n="MaxSpaceGB";e={([math]::Round([int64]($_.MaxSpace)/1GB,2))}},
-    @{n="UsedSpaceGB";e={([math]::Round([int64]($_.UsedSpace)/1GB,2))}}
 $ShadowCopies = gwmi Win32_ShadowCopy -Property VolumeName,InstallDate,Count -ComputerName $env:computername |
     Select VolumeName,InstallDate,Count,
     @{n="CreationDate";e={$_.ConvertToDateTime($_.InstallDate)}}
-$Shares = gwmi win32_share -Property Name,Path -ComputerName $env:computername | Select Name,@{n="Path";e={$_.Path.ToUpper()}}
 If($Volumes)
 {
     ForEach($Volume in $Volumes)
     {
-        $VolumeShares = $VolumeShadowStorage = $DiffVolume = $VolumeShadowCopies = $Null
-        If($Volume.DriveLetter -ne $Null){[array]$VolumeShares = $Shares | ?{$_.Path.StartsWith($Volume.DriveLetter)}}
-        $VolumeShadowStorage = $ShadowStorage | ?{$_.Volume -eq $Volume.DeviceID}
-        If($VolumeShadowStorage){$DiffVolume = $Volumes | ?{$_.DeviceID -eq $VolumeShadowStorage.DiffVolume}}
+        $VolumeShadowCopies = $Null
         $VolumeShadowCopies = $ShadowCopies | ?{$_.VolumeName -eq $Volume.DeviceID} | Sort InstallDate
         $Object = New-Object psobject
         $Object | Add-Member NoteProperty DriveLetter $Volume.DriveLetter -PassThru | Add-Member NoteProperty LatestShadowCopy "" -PassThru | Add-Member NoteProperty TimeShadowCopy ""
@@ -73,8 +81,10 @@ If($Volumes)
                     If($Object.TimeShadowCopy -gt 0) {
             $vss_state = "Failed"
         }
+        else {
+            $vss_state = "NONE"
         }
-        If($VolumeShadowStorage -Or $ShowAllVolumes){$Output += $Object}
+        }
     }
 }
 [System.IO.File]::AppendAllText("$logpath\$logfile", $vss_state, [System.Text.Encoding]::Unicode)
