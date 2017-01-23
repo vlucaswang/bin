@@ -65,8 +65,7 @@ $vss_state = "OK"
 $Volumes = gwmi Win32_Volume -Property SystemName,DriveLetter,DeviceID,Capacity,FreeSpace -Filter "DriveType=3" -ComputerName $env:computername |
                 Select SystemName,@{n="DriveLetter";e={$_.DriveLetter.ToUpper()}},DeviceID,@{n="CapacityGB";e={([math]::Round([int64]($_.Capacity)/1GB,2))}},@{n="FreeSpaceGB";e={([math]::Round([int64]($_.FreeSpace)/1GB,2))}} | Sort DriveLetter
 $ShadowCopies = gwmi Win32_ShadowCopy -Property VolumeName,InstallDate,Count -ComputerName $env:computername |
-    Select VolumeName,InstallDate,Count,
-    @{n="CreationDate";e={$_.ConvertToDateTime($_.InstallDate)}}
+    Select VolumeName,InstallDate,Count,@{n="CreationDate";e={$_.ConvertToDateTime($_.InstallDate)}}
 If($Volumes)
 {
     ForEach($Volume in $Volumes)
@@ -93,7 +92,7 @@ If($Volumes)
 
 function CheckShadowProtect {
 $sp_state = "OK"
-$sp_job_state = Get-EventLog -Computername $env:computername -LogName "Application" -After (get-date).AddDays(-1) | Where-Object {$_.EventID -eq 1120 -or $_.EventID -eq 1121 -or $_.EventID -eq 1122 -and $_.Source -eq "ShadowProtectSvc" -and (Get-Date $_.TimeWritten) -gt ((Get-Date).AddHours(-12))} | select -first 1 | select-string -pattern "Failed"
+$sp_job_state = Get-EventLog -Computername $env:computername -LogName "Application" -After (get-date).AddDays(-1) | Where-Object {$_.EventID -eq 1120 -or $_.EventID -eq 1121 -or $_.EventID -eq 1122 -and $_.Source -eq "ShadowProtectSvc" -and (Get-Date $_.TimeWritten) -gt ((Get-Date).AddHours(-24))} | select -first 1 | select-string -pattern "Failed"
 if ($sp_job_state -ne $null) {
     $sp_state = "Failed"
 }
@@ -103,7 +102,7 @@ if ($sp_job_state -ne $null) {
 
 function CheckLanSafe {
 $ls_state = "OK"
-$ls_log_state = Get-EventLog -Computername $env:computername -LogName "Application" -EntryType Error,Warning -After (get-date).AddDays(-1) | Where-Object {$_.Source -eq "LanSafe PM" -and (Get-Date $_.TimeWritten) -gt ((Get-Date).AddHours(-12))} | select -first 1
+$ls_log_state = Get-EventLog -Computername $env:computername -LogName "Application" -EntryType Error,Warning -After (get-date).AddDays(-1) | Where-Object {$_.Source -eq "LanSafe PM" -and (Get-Date $_.TimeWritten) -gt ((Get-Date).AddHours(-24))} | select -first 1
 if ($ls_log_state -ne $null) {
     $ls_state = "Failed"
 }
