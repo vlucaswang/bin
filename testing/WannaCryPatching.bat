@@ -1,13 +1,13 @@
 @ECHO OFF
 
 REM XP32bit
-@SET ver | find "5.1.2600"
+@ver | find "5.1.2600"
 if "%ERRORLEVEL%"=="0" (
 	ECHO= Please download http://download.windowsupdate.com/d/csa/csa/secu/2017/02/windowsxp-kb4012598-x86-custom-enu_eceb7d5023bbb23c0dc633e46b9c2f14fa6ee9dd.exe
 )
 
 REM XP64bit/2003/2003R2
-@SET ver | find "5.2.3790"
+@ver | find "5.2.3790"
 if "%ERRORLEVEL%"=="0" (
 	if exist "%ProgramFiles(x86)%" (
 	ECHO= Please download http://download.windowsupdate.com/d/csa/csa/secu/2017/02/windowsserver2003-kb4012598-x64-custom-enu_f24d8723f246145524b9030e4752c96430981211.exe
@@ -17,7 +17,7 @@ if "%ERRORLEVEL%"=="0" (
 )
 
 REM VISTA/2008
-@SET ver | find "6.0.600"
+@ver | find "6.0.600"
 if "%ERRORLEVEL%"=="0" (
     if exist "%ProgramFiles(x86)%" (
     @SET REMOTE_SOURCE_BATCH_URL=http://download.windowsupdate.com/d/msdownload/update/software/secu/2017/02/windows6.0-kb4012598-x64_6a186ba2b2b98b2144b50f88baf33a5fa53b5d76.msu
@@ -28,7 +28,7 @@ if "%ERRORLEVEL%"=="0" (
 )
 
 REM WIN7/2008R2
-@SET ver | find "6.1.760"
+@ver | find "6.1.760"
 if "%ERRORLEVEL%"=="0" (
     if exist "%ProgramFiles(x86)%" (
     @SET REMOTE_SOURCE_BATCH_URL=http://download.windowsupdate.com/d/msdownload/update/software/secu/2017/02/windows6.1-kb4012212-x64_2decefaa02e2058dcd965702509a992d8c4e92b3.msu
@@ -39,7 +39,7 @@ if "%ERRORLEVEL%"=="0" (
 )
 
 REM WIN8/2012
-@SET ver | find "6.2.9200"
+@ver | find "6.2.9200"
 if "%ERRORLEVEL%"=="0" (
     if exist "%ProgramFiles(x86)%" (
     @SET REMOTE_SOURCE_BATCH_URL=http://download.windowsupdate.com/c/msdownload/update/software/secu/2017/05/windows8-rt-kb4012598-x64_f05841d2e94197c2dca4457f1b895e8f632b7f8e.msu
@@ -50,7 +50,7 @@ if "%ERRORLEVEL%"=="0" (
 )
 
 REM WIN8.1/2012R2
-@SET ver | find "6.3.9"
+@ver | find "6.3.9"
 if "%ERRORLEVEL%"=="0" (
     if exist "%ProgramFiles(x86)%" (
     @SET REMOTE_SOURCE_BATCH_URL=http://download.windowsupdate.com/c/msdownload/update/software/secu/2017/02/windows8.1-kb4012213-x64_5b24b9ca5a123a844ed793e0f2be974148520349.msu
@@ -61,19 +61,19 @@ if "%ERRORLEVEL%"=="0" (
 )
 
 REM WIN10
-REM @SET ver | find "10.0.1"
+REM @ver | find "10.0.1"
 REM if "%ERRORLEVEL%"=="0" (
 REM     CALL :PATCHING
 REM )
 
 REM 2016
-REM @SET ver | find "10.0.1"
+REM @ver | find "10.0.1"
 REM if "%ERRORLEVEL%"=="0" (
 REM     @SET REMOTE_SOURCE_BATCH_URL=http://download.windowsupdate.com/c/msdownload/update/software/secu/2017/03/windows10.0-kb4013429-x64_delta_24521980a64972e99692997216f9d2cf73803b37.msu
 REM     CALL :PATCHING
 REM )
 
-CALL :CHECKING
+REM CALL :CHECKING
 
 :PATCHING
 @SETLOCAL ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
