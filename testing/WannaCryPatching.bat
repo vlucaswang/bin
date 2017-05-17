@@ -3,17 +3,17 @@
 REM XP32bit
 @ver | find "5.1.2600"
 if "%ERRORLEVEL%"=="0" (
-	ECHO= Please download http://download.windowsupdate.com/d/csa/csa/secu/2017/02/windowsxp-kb4012598-x86-custom-enu_eceb7d5023bbb23c0dc633e46b9c2f14fa6ee9dd.exe
+    ECHO= Please download http://download.windowsupdate.com/d/csa/csa/secu/2017/02/windowsxp-kb4012598-x86-custom-enu_eceb7d5023bbb23c0dc633e46b9c2f14fa6ee9dd.exe
 )
 
 REM XP64bit/2003/2003R2
 @ver | find "5.2.3790"
 if "%ERRORLEVEL%"=="0" (
-	if exist "%ProgramFiles(x86)%" (
-	ECHO= Please download http://download.windowsupdate.com/d/csa/csa/secu/2017/02/windowsserver2003-kb4012598-x64-custom-enu_f24d8723f246145524b9030e4752c96430981211.exe
-	) else (
-	ECHO= Please download http://download.windowsupdate.com/c/csa/csa/secu/2017/02/windowsserver2003-kb4012598-x86-custom-enu_f617caf6e7ee6f43abe4b386cb1d26b3318693cf.exe
-	) 
+    if exist "%ProgramFiles(x86)%" (
+    ECHO= Please download http://download.windowsupdate.com/d/csa/csa/secu/2017/02/windowsserver2003-kb4012598-x64-custom-enu_f24d8723f246145524b9030e4752c96430981211.exe
+    ) else (
+    ECHO= Please download http://download.windowsupdate.com/c/csa/csa/secu/2017/02/windowsserver2003-kb4012598-x86-custom-enu_f617caf6e7ee6f43abe4b386cb1d26b3318693cf.exe
+    ) 
 )
 
 REM VISTA/2008
@@ -73,40 +73,37 @@ REM     @SET REMOTE_SOURCE_BATCH_URL=http://download.windowsupdate.com/c/msdownl
 REM     CALL :PATCHING
 REM )
 
-REM CALL :CHECKING
-
 :PATCHING
 @SETLOCAL ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
 FOR %%a in ("%REMOTE_SOURCE_BATCH_URL%\.") do SET PATCH_NAME=%%~nxa
 @SET DOWNLOAD_COMMAND=$webClient=new-object System.Net.WebClient; $webClient.DownloadFile('%REMOTE_SOURCE_BATCH_URL%', '%PATCH_NAME%')
 powershell -noprofile -noninteractive -command "%DOWNLOAD_COMMAND%"
 FOR /R "%~dp0" %%A IN (*Windows*-KB*.MSU) DO (
-        CALL :SUB %%~nA        
-    ECHO= Installing KB!KB_NUM!        
+        CALL :SUB %%~nA
     >NUL net stop wuauserv
-    WUSA "%%A" /quiet /norestart)
+    START /WAIT "Installing KB!KB_NUM!" WUSA "%%A" /quiet /norestart)
+    SET ReturnCode=%ERRORLEVEL%
+
+If %ReturnCode%==1707 set ReturnCode=3010
+If %ReturnCode%==2359301 set ReturnCode=3010
+If %ReturnCode%==2359302 set ReturnCode=0
+If %ReturnCode%==2359303 set ReturnCode=0
+If %ReturnCode%==-2145124343 set ReturnCode=1618
+If %ReturnCode%==-2145124330 set ReturnCode=1641
+If %ReturnCode%==-2145124329 set ReturnCode=0
+If %ReturnCode%==2149842953 set ReturnCode=1618
+If %ReturnCode%==2149842966 set ReturnCode=1641
+If %ReturnCode%==2149842967 set ReturnCode=0
+
+If %ReturnCode%==0 ECHO Success, no reboot required
+If %ReturnCode%==1618 ECHO Fast Retry
+If %ReturnCode%==1641 ECHO Soft Reboot required
+If %ReturnCode%==3010 ECHO Success, reboot required
+
 @ENDLOCAL
+EXIT /B %ReturnCode%
 
 :SUB
 SET "KB_NUM=%*"
 FOR /F "DELIMS=-" %%B IN ("%KB_NUM:*-KB=%") DO SET "KB_NUM=%%B"
-
-:CHECKING
-SETlocal ENABLEDELAYEDEXPANSION
-SET patch_list='KB4012598','KB4012212','KB4015549','KB4012215','KB4012213','KB4012216','KB4012214','KB4012217','KB4012216','KB4012606','KB4013198','KB4013429'
-::source: https://support.microsoft.com/en-us/help/4013389/title
-ECHO Reading installed patch list...
-SET patch_found=false
-ECHO Processing installed patch list...
-FOR /f %%k in ('wmic qfe get hotfixid') do (
-  ECHO %patch_list% | findstr /C:"'%%k'" >nul
-  if errorlevel 1 (
-    rem
-  ) else (
-    ECHO MS17-010 Patch found: '%%k'. System is protected.
-    SET patch_found=true
-  )
-)
-if not "%patch_found%"=="true" ECHO No MS17-010 patch found. System is not protected!
-SET patch_list=
-SET patch_found=
+EXIT /B 0
