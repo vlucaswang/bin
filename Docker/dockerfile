@@ -1,0 +1,38 @@
+FROM debian:stretch-slim
+
+MAINTAINER Lucas Wang "nkwdwxc@gmail.com"
+
+ENV NGINX-CT_URL https://github.com/grahamedgecombe/nginx-ct/archive/v1.3.2.zip
+ENV NGINX_VER    nginx-1.13.3
+
+RUN set -ex && \
+    apt-get update -qq && \
+    apt-get install -y --no-install-recommends build-essential libpcre3 libpcre3-dev zlib1g-dev unzip git autoconf libtool automake wget && \
+    mkdir /tmp/src && cd /tmp/src && \
+    wget --no-check-certificate -O nginx-ct.zip -c ${NGINX-CT_URL} && \
+    unzip nginx-ct.zip && \
+    git config --global http.sslVerify false && \
+    git clone https://github.com/bagder/libbrotli && \
+    cd libbrotli && \
+    ./autogen.sh && ./configure && make && make install && cd ../ && \
+    ln -s /usr/local/lib/libbrotlienc.so.1 /usr/lib/libbrotlienc.so.1 && \
+    git clone https://github.com/google/ngx_brotli.git && \
+    cd ngx_brotli && \
+	git submodule update --init && cd ../ && \
+    git clone -b tls1.3-draft-18 --single-branch https://github.com/openssl/openssl.git openssl && \
+    wget --no-check-certificate -c https://nginx.org/download/${NGINX_VER}.tar.gz && \
+    tar zxf ${NGINX_VER}.tar.gz && \
+    cd ${NGINX_VER}/ && \
+    ./configure --add-module=../ngx_brotli --add-module=../nginx-ct-1.3.2 --with-openssl=../openssl --with-openssl-opt='enable-tls1_3 enable-weak-ssl-ciphers' --with-http_v2_module --with-http_ssl_module --with-http_gzip_static_module $$ \
+    make && make install && \
+    rm -rf /tmp/src && apt-get remove -y unzip git autoconf libtool wget automake build-essential
+
+# forward request and error logs to docker log collector
+RUN ln -sf /dev/stdout /var/log/nginx/access.log \
+	&& ln -sf /dev/stderr /var/log/nginx/error.log
+
+EXPOSE 80 443
+
+STOPSIGNAL SIGTERM
+
+CMD ["nginx", "-g", "daemon off;"]
