@@ -1,0 +1,20 @@
+version: '3'
+services:
+  nginx:
+    image: wonderfall/boring-nginx
+    container_name: nginx
+    ports:
+      - "80:8000"
+      - "443:4430"
+    volumes:
+      - /mnt/docker/nginx/sites-enabled:/sites-enabled
+      - /mnt/docker/nginx/conf:/conf.d
+      - /mnt/docker/nginx/log:/var/log/nginx
+      - /mnt/docker/nginx/certs:/certs
+    restart: always
+    networks:
+      - appnet
+# used for interal communication within docker
+networks:
+  appnet:
+    driver: "bridge"
