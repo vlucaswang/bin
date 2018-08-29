@@ -1,0 +1,12 @@
+Connect-VIServer -Protocol https -Server x.x.x.x -User $adminuser -Password $adminpassword
+
+Remove-VIRole Role1
+
+$readOnlyPrivileges = Get-VIPrivilege -Role Readonly
+$role1 = New-VIRole -Privilege $readOnlyPrivileges -Name Role1
+$powerOnPrivileges = Get-VIPrivilege -Name "Power On"
+$role1 = Set-VIRole ¨CRole $role1 ¨CAddPrivilege $powerOnPrivileges
+New-VMHostAccount -Id $user -Password $password -Description "XXX Account"
+$rootFolder = Get-Folder -NoRecursion
+$permission1 = New-VIPermission -Entity $rootFolder -Principal suburban -Role readonly -Propagate $true
+$permission1 = Set-VIPermission -Permission $permission1 -Role $role1

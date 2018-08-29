@@ -16,7 +16,7 @@ else {
 }
 my $directory = dirname( $ARGV[0] );
 open (HTMLFILE, ">" . $directory . "/winroute.html");
-@colors=("#FAFFFF","#EFFF11","#C9D8ED","#FFCCCC","#C9EEC6","#D3BFEB","#FDE8CA","#E8E8E8");
+@colors=("#FFFFFF","#EFFF11","#C9D8ED","#FFCCCC","#C9EEC6","#D3BFEB","#FDE8CA","#E8E8E8");
 open(I,"<:crlf",$ARGV[0]);
 $lastseen="";
 while (<I>) {
